@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #1a1a1a;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    .game-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      background-color: #333;
+      display: grid;
+      grid-template-rows: repeat(20, 1fr);
+      grid-template-columns: repeat(20, 1fr);
+    }
+    .cell {
+      width: 100%;
+      height: 100%;
+      background-color: #444;
+      box-sizing: border-box;
+    }
+    .snake {
+      background-color: #4caf50;
+    }
+    .food {
+      background-color: #f44336;
+    }
+    .score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="score">Score: 0</div>
+  </div>
+
+  <script>
+    const container = document.querySelector('.game-container');
+    const scoreDisplay = document.querySelector('.score');
+    const rows = 20;
+    const cols = 20;
+    const grid = [];
+    let snake = [{ row: 10, col: 10 }];
+    let direction = { row: 0, col: 1 }; // Начальное направление - вправо
+    let food = { row: Math.floor(Math.random() * rows), col: Math.floor(Math.random() * cols) };
+    let score = 0;
+    let interval;
+
+    // Создаем игровое поле
+    for (let r = 0; r < rows; r++) {
+      const row = [];
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        container.appendChild(cell);
+        row.push(cell);
+      }
+      grid.push(row);
+    }
+
+    // Отображение змейки
+    function drawSnake() {
+      grid.forEach(row => row.forEach(cell => cell.classList.remove('snake')));
+      snake.forEach(segment => {
+        grid[segment.row][segment.col].classList.add('snake');
+      });
+    }
+
+    // Отображение еды
+    function drawFood() {
+      grid.forEach(row => row.forEach(cell => cell.classList.remove('food')));
+      grid[food.row][food.col].classList.add('food');
+    }
+
+    // Перемещение змейки
+    function moveSnake() {
+      const head = { 
+        row: (snake[0].row + direction.row + rows) % rows,
+        col: (snake[0].col + direction.col + cols) % cols
+      };
+
+      // Проверка столкновения с телом змейки
+      if (snake.some(segment => segment.row === head.row && segment.col === head.col)) {
+        clearInterval(interval);
+        alert(`Game Over! Your score: ${score}`);
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Проверка на поедание еды
+      if (head.row === food.row && head.col === food.col) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        food = { row: Math.floor(Math.random() * rows), col: Math.floor(Math.random() * cols) };
+        drawFood();
+      } else {
+        snake.pop(); // Удаляем хвост
+      }
+
+      drawSnake();
+    }
+
+    // Управление
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowUp' && direction.row === 0) direction = { row: -1, col: 0 };
+      if (event.key === 'ArrowDown' && direction.row === 0) direction = { row: 1, col: 0 };
+      if (event.key === 'ArrowLeft' && direction.col === 0) direction = { row: 0, col: -1 };
+      if (event.key === 'ArrowRight' && direction.col === 0) direction = { row: 0, col: 1 };
+    });
+
+    // Запуск игры
+    function startGame() {
+      drawSnake();
+      drawFood();
+      interval = setInterval(moveSnake, 200);
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
